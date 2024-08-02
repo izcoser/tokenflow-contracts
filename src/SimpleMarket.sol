@@ -12,6 +12,8 @@ contract SimpleMarket is Ownable {
 
     event TokenSold(Listing listing);
     event TokenListed(Listing listing);
+    event PriceUpdated(Listing listing);
+    event ListingRemoved(uint256 listingIndex);
 
     constructor() Ownable(msg.sender) {}
 
@@ -74,6 +76,35 @@ contract SimpleMarket is Ownable {
 
         IERC721(collection).transferFrom(seller, msg.sender, tokenId);
         emit TokenSold(listing);
+    }
+
+    function updateListed(uint256 listingIndex, uint256 newPrice) external {
+        Listing storage listing = listedForSale[listingIndex];
+
+        uint256 tokenId = listing.tokenId;
+        address collection = listing.collection;
+
+        if (IERC721(collection).ownerOf(tokenId) != msg.sender) {
+            revert NotOwnerOfToken(msg.sender, tokenId, collection);
+        }
+
+        listing.price = newPrice;
+        emit PriceUpdated(listing);
+    }
+
+    function removeListed(uint256 listingIndex) external {
+        Listing storage listing = listedForSale[listingIndex];
+
+        uint256 tokenId = listing.tokenId;
+        address collection = listing.collection;
+
+        if (IERC721(collection).ownerOf(tokenId) != msg.sender) {
+            revert NotOwnerOfToken(msg.sender, tokenId, collection);
+        }
+
+        listedForSale[listingIndex] = listedForSale[listedForSale.length - 1];
+        listedForSale.pop();
+        emit ListingRemoved(listingIndex);
     }
 
     function getListed() external view returns (Listing[] memory) {

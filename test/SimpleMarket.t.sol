@@ -62,4 +62,41 @@ contract SimpleMarketTest is Test {
         assertEq(tokenFlow.ownerOf(tokenIdForSale), customer);
         vm.stopPrank();
     }
+
+    function testRemoveListed() public {
+        vm.startPrank(admin);
+
+        vm.expectEmit(address(simpleMarket));
+        emit SimpleMarket.ListingRemoved(0);
+
+        simpleMarket.removeListed(0);
+
+        SimpleMarket.Listing[] memory listedForSale = simpleMarket.getListed();
+        assertEq(listedForSale.length, 0);
+        vm.stopPrank();
+    }
+
+    function testUpdateListed() public {
+        vm.startPrank(admin);
+
+        SimpleMarket.Listing memory updatedListing = SimpleMarket.Listing({
+            tokenId: tokenIdForSale,
+            collection: address(tokenFlow),
+            price: 5 ether
+        });
+
+        SimpleMarket.Listing[] memory listedForSaleBefore = simpleMarket
+            .getListed();
+
+        vm.expectEmit(address(simpleMarket));
+        emit SimpleMarket.PriceUpdated(updatedListing);
+
+        simpleMarket.updateListed(0, 5 ether);
+
+        SimpleMarket.Listing[] memory listedForSale = simpleMarket.getListed();
+
+        assertEq(listedForSaleBefore[0].price, 1 ether);
+        assertEq(listedForSale[0].price, 5 ether);
+        vm.stopPrank();
+    }
 }
