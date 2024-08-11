@@ -35,7 +35,7 @@ contract SimpleMarket is Ownable {
             revert NotOwnerOfToken(msg.sender, tokenId, collection);
         }
 
-        if (IERC721(collection).getApproved(tokenId) != address(this)) {
+        if (!IERC721(collection).isApprovedForAll(msg.sender, address(this)) && IERC721(collection).getApproved(tokenId) != address(this)) {
             revert TokenNotApproved(msg.sender, tokenId, collection);
         }
 
